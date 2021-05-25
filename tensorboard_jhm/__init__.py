@@ -1,10 +1,10 @@
 import argparse
 import uuid
 
+from IPython.core.magic import register_line_magic
 from IPython.display import HTML, display
-import jupyter_tensorboard
 
-
+@register_line_magic
 def _tensorboard_magic(line):
     """Line magic function.
     Makes an AJAX call to the Jupyter TensorBoard server extension and outputs
