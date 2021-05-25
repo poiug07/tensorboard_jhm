@@ -85,9 +85,14 @@ def load_ipython_extension(ipython):
     Raises:
       RuntimeError: Always.
     """
-    raise RuntimeError(
-        "Use '%load_ext tensorboard' instead of '%load_ext tensorboard.notebook'."
+    ipython.register_magic_function(
+        _tensorboard_magic,
+        magic_kind="line",
+        magic_name="tensorboard",
     )
+    # raise RuntimeError(
+    #     "Use '%load_ext tensorboard' instead of '%load_ext tensorboard.notebook'."
+    # )
 
 
 def _load_ipython_extension(ipython):
