@@ -1,8 +1,8 @@
-#Need to make changes to default tensorboard magics
 import argparse
 import uuid
 
 from IPython.display import HTML, display
+import jupyter_tensorboard
 
 
 def _tensorboard_magic(line):
@@ -10,8 +10,10 @@ def _tensorboard_magic(line):
     Makes an AJAX call to the Jupyter TensorBoard server extension and outputs
     an IFrame displaying the TensorBoard instance.
     """
+#     print(dir(jupyter_tensorboard.handlers))
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--logdir", default=".")
+    parser.add_argument("--logdir", default="/workspace/")
     parser.add_argument("--h", default=620)
     args = parser.parse_args(line.split())
 
@@ -20,18 +22,34 @@ def _tensorboard_magic(line):
     html = """
 <!-- JUPYTER_TENSORBOARD_TEST_MARKER -->
 <script>
+    // Token is required to spawn new instance if not present
+    // New tensorboard instance is not spawned if it exists in given dir
+    var xsrfToken = document.cookie.match(new RegExp('(^| )_xsrf=([^;]+)'));
+    xsrfToken = xsrfToken ? xsrfToken[2] : undefined;
+    var logdir = '%s';
+    if (logdir=='.'){
+        logdir = Jupyter.notebook.base_url;
+        logdir = logdir.replace("user", "home")
+    } else {
+        logdir = Jupyter.notebook.base_url + logdir;
+    }
     fetch(Jupyter.notebook.base_url + 'api/tensorboard', {
-        method: 'GET',
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-XSRFToken": xsrfToken,
+        },
+        body: JSON.stringify({'logdir': logdir}),
     })
         .then(res => res.json())
         .then(res => {
-            let logdir = '%s';
-            if (logdir=='.'){
-                logdir = Jupyter.notebook.base_url;
-                logdir = logdir.replace("user", "home")
-            }
             const iframe = document.getElementById('%s');
             iframe.style.height = '%spx';
+            iframe.src = Jupyter.notebook.base_url + 'tensorboard/' + res.name;
+            iframe.style.display = 'block';
+            /*
             for(let i=0; i<res.length; i++) {
                 if (res[i].logdir==logdir){
                     var obj = res[i];
@@ -46,6 +64,7 @@ def _tensorboard_magic(line):
             iframe.contentWindow.document.close();
             iframe.style.height = '50px';
             iframe.style.display = 'block';
+            */
         });
 </script>
 <iframe
