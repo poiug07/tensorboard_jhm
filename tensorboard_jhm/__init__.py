@@ -1,7 +1,6 @@
 import argparse
 import uuid
 
-from IPython.core.magic import register_line_magic
 from IPython.display import HTML, display
 
 def _tensorboard_magic(line):
